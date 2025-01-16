@@ -1,0 +1,33 @@
+[package]
+name = "bento"
+version = "0.1.0"
+edition = "2021"
+authors = ["Bento Team"]
+license = "MIT"
+description = "Official Rust SDK for Bento APIs"
+repository = "https://github.com/bentonow/bento-rust-sdk"
+documentation = "https://docs.rs/bento"
+readme = "../README.md"
+keywords = ["email", "marketing", "api", "client"]
+categories = ["api-bindings"]
+
+[lib]
+name = "bento"
+path = "src/lib.rs"
+
+[dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+time = { version = "0.3", features = ["serde"] }
+url = "2.5"
+tokio-retry = "0.3"
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockall = "0.12"
+wiremock = "0.5"

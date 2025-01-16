@@ -1,0 +1,61 @@
+# Root workspace configuration
+[workspace]
+resolver = "2"
+members = [
+    "bento",
+]
+
+# Workspace-wide package metadata
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Bento Team"]
+license = "MIT"
+repository = "https://github.com/bentonow/bento-rust-sdk"
+documentation = "https://docs.rs/bento"
+readme = "README.md"
+keywords = ["email", "marketing", "api", "client"]
+categories = ["api-bindings"]
+
+# Workspace-wide dependency specifications
+[workspace.dependencies]
+# HTTP client dependencies
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1.0", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error handling and logging
+thiserror = "1.0"
+tracing = "0.1"
+
+# Time handling
+time = { version = "0.3", features = ["serde"] }
+
+# Utility
+url = "2.5"
+tokio-retry = "0.3"
+async-trait = "0.1"
+
+# Testing
+tokio-test = "0.4"
+mockall = "0.12"
+wiremock = "0.5"
+
+# Workspace configuration
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = 'abort'
+strip = true
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.test]
+opt-level = 0
+debug = true
