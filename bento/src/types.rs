@@ -117,7 +117,7 @@ pub struct SubscriberData {
 }
 
 /// Subscriber attributes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)] // Add Default here
 pub struct SubscriberAttributes {
     /// UUID
     pub uuid: String,
@@ -128,6 +128,7 @@ pub struct SubscriberAttributes {
     /// Assigned tag IDs
     pub cached_tag_ids: Vec<String>,
     /// Unsubscribe date
+    #[serde(with = "time::serde::rfc3339::option")]
     pub unsubscribed_at: Option<OffsetDateTime>,
 }
 

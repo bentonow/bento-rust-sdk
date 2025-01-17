@@ -39,6 +39,9 @@ pub mod tag;
 /// The stats module includes tools for accessing and manipulating statistical data.
 pub mod stats;
 
+#[cfg(test)]
+mod test_utils;
+
 pub use client::Client;
 pub use config::{Config, ConfigBuilder};
 pub use error::Error;

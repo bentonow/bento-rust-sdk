@@ -3,6 +3,7 @@
 resolver = "2"
 members = [
     "bento",
+    "examples"
 ]
 
 # Workspace-wide package metadata
@@ -32,7 +33,7 @@ thiserror = "1.0"
 tracing = "0.1"
 
 # Time handling
-time = { version = "0.3", features = ["serde"] }
+time = { version = "0.3", features = ["serde-human-readable"] }
 
 # Utility
 url = "2.5"

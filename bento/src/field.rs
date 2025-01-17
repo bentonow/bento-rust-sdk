@@ -1,35 +1,45 @@
+//! Field management module for the Bento API
+//!
+//! This module provides functionality for retrieving and creating custom fields
+//! in the Bento system.
+
 use crate::{Client, Error, Result};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use tracing::instrument;
 
-/// Field data returned from the API
+/// Represents field data returned from the API
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FieldData {
-    /// Field ID
+    /// Unique identifier for the field
     pub id: String,
-    /// Data type
+    /// Type of the data object
     #[serde(rename = "type")]
     pub data_type: String,
-    /// Field attributes
+    /// Field attributes containing metadata
     pub attributes: FieldAttributes,
 }
 
-/// Field attributes
+/// Attributes associated with a field
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FieldAttributes {
-    /// Field name
+    /// Display name of the field
     pub name: String,
-    /// Field key
+    /// Unique key identifier for the field
     pub key: String,
-    /// Whether the field is whitelisted
+    /// Flag indicating if the field is whitelisted
     pub whitelisted: Option<bool>,
-    /// Creation timestamp
-    pub created_at: OffsetDateTime,
+    /// Timestamp when the field was created
+    #[serde(with = "time::serde::rfc3339::option")]
+    pub created_at: Option<OffsetDateTime>,
 }
 
 impl Client {
-    /// Get all custom fields
+    /// Retrieves all custom fields
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the API request fails or if the response cannot be parsed
     #[instrument(skip(self))]
     pub async fn get_fields(&self) -> Result<Vec<FieldData>> {
         let url = self.build_url("/fetch/fields")?;
@@ -46,7 +56,18 @@ impl Client {
         Ok(field_response.data)
     }
 
-    /// Create a new custom field
+    /// Creates a new custom field
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - The unique key identifier for the new field
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// * The key is empty
+    /// * The API request fails
+    /// * The response cannot be parsed
     #[instrument(skip(self))]
     pub async fn create_field(&self, key: &str) -> Result<FieldData> {
         if key.is_empty() {
@@ -88,18 +109,16 @@ mod tests {
             .and(path("/fetch/fields"))
             .respond_with(ResponseTemplate::new(200)
                 .set_body_json(serde_json::json!({
-                    "data": [
-                        {
-                            "id": "field_123",
-                            "type": "field",
-                            "attributes": {
-                                "name": "Test Field",
-                                "key": "test_field",
-                                "whitelisted": true,
-                                "created_at": "2024-01-16T00:00:00Z"
-                            }
+                    "data": [{
+                        "id": "field_123",
+                        "type": "field",
+                        "attributes": {
+                            "name": "Test Field",
+                            "key": "test_field",
+                            "whitelisted": true,
+                            "created_at": "2024-01-16T00:00:00Z"
                         }
-                    ]
+                    }]
                 })))
             .mount(&mock_server)
             .await;
@@ -107,8 +126,10 @@ mod tests {
         let client = crate::test_utils::create_test_client(mock_server.uri());
         let result = client.get_fields().await;
 
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap().len(), 1);
+        assert!(result.is_ok(), "Expected OK, got {:?}", result);
+        let fields = result.unwrap();
+        assert_eq!(fields.len(), 1);
+        assert_eq!(fields[0].attributes.name, "Test Field");
     }
 
     #[tokio::test]
@@ -136,7 +157,10 @@ mod tests {
         let client = crate::test_utils::create_test_client(mock_server.uri());
         let result = client.create_field("test_field").await;
 
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "Expected OK, got {:?}", result);
+        let field = result.unwrap();
+        assert_eq!(field.attributes.name, "Test Field");
+        assert_eq!(field.attributes.key, "test_field");
     }
 
     #[tokio::test]
