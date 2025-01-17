@@ -6,25 +6,7 @@ use crate::{EmailData, Error};
 /// The `EmailBatch` struct contains a collection of email messages (`EmailData`),
 /// with a restriction on the maximum number of emails allowed in a single batch (60).
 ///
-/// # Examples
-///
-/// Creating a new email batch:
-/// ```
-/// # use your_crate::{EmailBatch, EmailData, Error};
-/// let emails = vec![
-///     EmailData {
-///         to: "recipient@example.com".into(),
-///         from: "sender@example.com".into(),
-///         subject: "Hello!".into(),
-///         html_body: "<p>Hello, world!</p>".into(),
-///         transactional: true,
-///         personalizations: None,
-///     }
-/// ];
-///
-/// let batch = EmailBatch::new(emails).expect("Failed to create email batch");
-/// assert_eq!(batch.len(), 1);
-/// ```
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmailBatch {
     /// List of email messages
