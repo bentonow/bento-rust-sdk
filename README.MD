@@ -4,19 +4,7 @@
 > [!TIP]
 > Need help? Join our [Discord](https://discord.gg/ssXXFRmt5F) or email jesse@bentonow.com for personalized support.
 
-The Bento Rust SDK makes it quick and easy to send emails and track events in your Rust applications. We provide powerful and customizable APIs that can be used out-of-the-box to manage subscribers, track events, and send transactional emails.
-
-Get started with our [📚 integration guides](https://docs.bentonow.com), or [📘 browse the SDK reference](https://docs.bentonow.com/subscribers).
-
-## Features
-
-* **Event Tracking**: Track custom events with rich metadata and fields
-* **Subscriber Management**: Create and import subscribers with full data support
-* **Email Handling**: Send transactional emails with batching support
-* **Broadcast Management**: Create and manage email broadcasts
-* **Async Support**: Built on tokio for async/await support
-* **Strong Types**: Type-safe request and response handling with serde
-* **Retry Logic**: Automatic retry handling for rate limits
+The Bento Rust SDK provides a robust interface for email management, subscriber tracking, and event handling in your Rust applications.
 
 ## Requirements
 
@@ -26,32 +14,39 @@ Get started with our [📚 integration guides](https://docs.bentonow.com), or [�
 
 ## Installation
 
-Add this to your `Cargo.toml`:
-
+1. Add to your `Cargo.toml`:
 ```toml
 [dependencies]
 bento = "0.1.0"
+```
+
+2. Create a `.env` file in your project root:
+```env
+BENTO_PUBLISHABLE_KEY=your_publishable_key
+BENTO_SECRET_KEY=your_secret_key
+BENTO_SITE_UUID=your_site_uuid
 ```
 
 ## Quick Start
 
 ```rust
 use bento::{Client, ConfigBuilder};
-use tokio;
+use dotenv::dotenv;
+use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Load environment variables
+    dotenv().ok();
+
+    // Initialize client
     let config = ConfigBuilder::new()
-        .publishable_key("your-key")
-        .secret_key("your-secret")
-        .site_uuid("your-uuid")
+        .publishable_key(&env::var("BENTO_PUBLISHABLE_KEY")?)
+        .secret_key(&env::var("BENTO_SECRET_KEY")?)
+        .site_uuid(&env::var("BENTO_SITE_UUID")?)
         .build()?;
 
     let client = Client::new(config)?;
-
-    // Create a simple subscriber
-    let new_subscriber = client.create_subscriber("test@example.com").await?;
-    println!("Created subscriber: {:?}", new_subscriber);
 
     Ok(())
 }
@@ -61,26 +56,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Subscriber Management
 
-The SDK provides three main methods for subscriber management:
-
-#### Find Subscriber
-```rust
-let subscriber = client.find_subscriber("test@example.com").await?;
-println!("Found subscriber: {:?}", subscriber);
-```
-
-#### Create Subscriber
-```rust
-// Simple subscriber creation
-let subscriber = client.create_subscriber("test@example.com").await?;
-```
-
-#### Import Subscribers
 ```rust
 use std::collections::HashMap;
 use bento::ImportSubscriberData;
 
-// Create subscriber with full data
+// Find a subscriber
+let subscriber = client.find_subscriber("test@example.com").await?;
+
+// Create a simple subscriber
+let new_subscriber = client.create_subscriber("test@example.com").await?;
+
+// Import subscribers with full data
 let mut custom_fields = HashMap::new();
 custom_fields.insert("company".to_string(), serde_json::json!("Acme Inc"));
 custom_fields.insert("role".to_string(), serde_json::json!("Developer"));
@@ -99,39 +85,28 @@ client.import_subscribers(vec![subscriber]).await?;
 
 ### Email Management
 
-The SDK supports sending emails in batches using the `EmailBatch` struct:
-
 ```rust
 use bento::{EmailData, EmailBatch};
 
+// Create an email
 let email = EmailData {
     to: "recipient@example.com".to_string(),
     from: "sender@yourdomain.com".to_string(),
     subject: "Welcome".to_string(),
     html_body: "<p>Hello!</p>".to_string(),
     transactional: true,
-    personalizations: None,
+    personalizations: Some({
+        let mut map = HashMap::new();
+        map.insert("name".to_string(), serde_json::json!("John"));
+        map
+    }),
 };
 
 // Create a batch (maximum 60 emails per batch)
-let mut batch = EmailBatch::new(vec![email])?;
-
-// Add another email to the batch
-let another_email = EmailData {
-    to: "another@example.com".to_string(),
-    from: "sender@yourdomain.com".to_string(),
-    subject: "Welcome".to_string(),
-    html_body: "<p>Hello!</p>".to_string(),
-    transactional: true,
-    personalizations: None,
-};
-
-batch.add_email(another_email)?;
+let batch = EmailBatch::new(vec![email])?;
 ```
 
 ### Event Tracking
-
-Track custom events with rich metadata:
 
 ```rust
 use bento::EventData;
@@ -156,11 +131,13 @@ client.track_events(vec![event]).await?;
 
 ### Broadcast Management
 
-Create and manage email broadcasts:
-
 ```rust
 use bento::{BroadcastData, BroadcastType, ContactData};
 
+// Get all broadcasts
+let broadcasts = client.get_broadcasts().await?;
+
+// Create a broadcast
 let broadcast = BroadcastData {
     name: "Test Campaign".to_string(),
     subject: "Welcome Email".to_string(),
@@ -170,85 +147,155 @@ let broadcast = BroadcastData {
         name: Some("John Doe".to_string()),
         email: "sender@yourdomain.com".to_string(),
     },
-    inclusive_tags: None,
+    inclusive_tags: Some("lead,mql".to_string()),
     exclusive_tags: None,
     segment_id: None,
-    batch_size_per_hour: 1000,
+    batch_size_per_hour: 300, // Default batch size
 };
 
 client.create_broadcasts(vec![broadcast]).await?;
 ```
 
+### Tag Management
+
+```rust
+// Get all tags
+let tags = client.get_tags().await?;
+
+// Create a new tag
+let new_tag = client.create_tag("new-customer").await?;
+```
+
+### Field Management
+
+```rust
+// Get all custom fields
+let fields = client.get_fields().await?;
+
+// Create a new custom field
+let new_field = client.create_field("purchase_amount").await?;
+```
+
+### Statistics APIs
+
+```rust
+// Get site-wide statistics
+let site_stats = client.get_site_stats().await?;
+
+// Get segment statistics
+let segment_stats = client.get_segment_stats("segment_123").await?;
+
+// Get report statistics
+let report_stats = client.get_report_stats("report_456").await?;
+```
+
+### Experimental APIs
+
+```rust
+use bento::{BlacklistData, ValidationData};
+
+// Check domain blacklist status
+let domain_check = client.get_blacklist_status(&BlacklistData {
+    domain: Some("example.com".to_string()),
+    ip: None,
+}).await?;
+
+// Check IP blacklist status
+let ip_check = client.get_blacklist_status(&BlacklistData {
+    domain: None,
+    ip: Some("1.1.1.1".to_string()),
+}).await?;
+
+// Validate email
+let validation = client.validate_email(&ValidationData {
+    email: "test@example.com".to_string(),
+    name: Some("John Doe".to_string()),
+    user_agent: Some("Mozilla/5.0".to_string()),
+    ip: Some("1.1.1.1".to_string()),
+}).await?;
+
+// Content moderation
+let moderation = client.get_content_moderation("Content to moderate").await?;
+
+// Gender prediction
+let gender = client.get_gender("John").await?;
+
+// IP geolocation
+let location = client.geolocate_ip("1.1.1.1").await?;
+```
+
+## Data Types
+
+### Broadcast Types
+```rust
+pub enum BroadcastType {
+    Plain,  // Plain text broadcast
+    Raw,    // Raw HTML broadcast
+}
+```
+
+### Command Types
+```rust
+pub enum CommandType {
+    AddTag,          // Add a tag to a subscriber
+    AddTagViaEvent,  // Add a tag via an event
+    RemoveTag,       // Remove a tag from a subscriber
+    AddField,        // Add a field to a subscriber
+    RemoveField,     // Remove a field from a subscriber
+    Subscribe,       // Subscribe a user
+    Unsubscribe,     // Unsubscribe a user
+    ChangeEmail,     // Change a user's email
+}
+```
+
+### Subscriber Data
+```rust
+pub struct SubscriberData {
+    pub id: String,
+    pub data_type: String,
+    pub attributes: SubscriberAttributes,
+}
+
+pub struct SubscriberAttributes {
+    pub uuid: String,
+    pub email: String,
+    pub fields: HashMap<String, serde_json::Value>,
+    pub cached_tag_ids: Vec<String>,
+    pub unsubscribed_at: Option<OffsetDateTime>,
+}
+```
+
+### Email Data
+```rust
+pub struct EmailData {
+    pub to: String,
+    pub from: String,
+    pub subject: String,
+    pub html_body: String,
+    pub transactional: bool,
+    pub personalizations: Option<HashMap<String, serde_json::Value>>,
+}
+```
+
 ## Error Handling
 
-The SDK provides strongly typed errors:
+The SDK includes built-in retry logic with exponential backoff for rate limits and transient failures. Available error types:
 
 ```rust
-use bento::Error;
-
-match client.create_subscriber("test@example.com").await {
-    Ok(subscriber) => println!("Created: {}", subscriber.id),
-    Err(Error::InvalidEmail(email)) => eprintln!("Invalid email: {}", email),
-    Err(Error::RateLimit) => eprintln!("Rate limit exceeded"),
-    Err(Error::AuthenticationFailed) => eprintln!("Auth failed"),
-    Err(e) => eprintln!("Other error: {}", e),
-}
-```
-
-Available error types:
-- `Error::InvalidConfig`: Configuration error
-- `Error::InvalidEmail`: Invalid email format
-- `Error::InvalidRequest`: Invalid request parameters
-- `Error::UnexpectedResponse`: Unexpected API response
-- `Error::InvalidBatchSize`: Invalid batch size
-- `Error::RateLimit`: Rate limit exceeded
-- `Error::AuthenticationFailed`: Authentication failed
-- `Error::HttpClient`: HTTP client error
-
-## Best Practices
-
-### Configuration
-Use the builder pattern for client configuration:
-
-```rust
-let config = ConfigBuilder::new()
-    .publishable_key("your-key")
-    .secret_key("your-secret")
-    .site_uuid("your-uuid")
-    .timeout(Duration::from_secs(30)) // Optional
-    .base_url("https://custom.url") // Optional
-    .build()?;
-```
-
-### Batch Operations
-Respect the email batch size limit:
-```rust
-// EmailBatch has a hard limit of 60 emails
-if emails.len() > 60 {
-    for chunk in emails.chunks(60) {
-        let batch = EmailBatch::new(chunk.to_vec())?;
-        // Process batch
-    }
-}
-```
-
-### Error Handling
-Always handle rate limits and authentication errors:
-```rust
-match client.find_subscriber("test@example.com").await {
-    Ok(subscriber) => {
-        // Process subscriber
-    }
-    Err(Error::RateLimit) => {
-        tokio::time::sleep(Duration::from_secs(1)).await;
-        // Retry the request
-    }
-    Err(Error::AuthenticationFailed) => {
-        // Check your API keys
-    }
-    Err(e) => {
-        eprintln!("Error: {}", e);
-    }
+pub enum Error {
+    InvalidConfig(String),        // Configuration error
+    InvalidEmail(String),         // Invalid email format
+    InvalidIpAddress(String),     // Invalid IP address
+    InvalidRequest(String),       // Invalid request parameters
+    UnexpectedResponse(String),   // Unexpected API response
+    InvalidName(String),          // Invalid name format
+    InvalidSegmentId(String),     // Invalid segment ID
+    InvalidContent(String),       // Invalid content
+    InvalidTags(String),         // Invalid tags format
+    InvalidBatchSize(String),    // Invalid batch size
+    HttpClient(reqwest::Error),  // HTTP client error
+    RateLimit,                   // Rate limit exceeded
+    AuthenticationFailed,        // Authentication failed
 }
 ```
 
