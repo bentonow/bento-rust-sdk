@@ -6,10 +6,10 @@ use bento::{Client, ConfigBuilder, EventData, BroadcastData, BroadcastType, Cont
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// Load environment variables
+    // Load environment variables
     dotenv().ok();
 
-    /// Initialize client
+    // Initialize client
     let config = ConfigBuilder::new()
         .publishable_key(&env::var("BENTO_PUBLISHABLE_KEY")?)
         .secret_key(&env::var("BENTO_SECRET_KEY")?)
@@ -18,15 +18,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = Client::new(config)?;
 
-    /// Find a subscriber by email
+    // Find a subscriber by email
     let subscriber = client.find_subscriber("rust@example.com").await?;
     println!("Found subscriber: {:?}", subscriber);
 
-    /// Create subscriber example (simple version)
+    // Create subscriber example (simple version)
     let new_subscriber = client.create_subscriber("rust@example.com").await?;
     println!("Created subscriber: {:?}", new_subscriber);
 
-    /// Import subscribers example with full data
+    // Import subscribers example with full data
     let mut custom_fields = HashMap::new();
     custom_fields.insert("company".to_string(), serde_json::json!("Acme Inc"));
     custom_fields.insert("role".to_string(), serde_json::json!("Developer"));
@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     client.import_subscribers(vec![subscriber]).await?;
 
-    /// Track event example
+    // Track event example
     let event = EventData {
         event_type: "$onboarding_complete".to_string(),
         email: "test@example.com".to_string(),
@@ -55,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => eprintln!("Error tracking event: {}", e),
     }
 
-    /// Create broadcast example
+    // Create broadcast example
     let broadcast = BroadcastData {
         name: "Test Campaign".to_string(),
         subject: "Test Broadcast".to_string(),
@@ -76,31 +76,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => eprintln!("Error creating broadcast: {}", e),
     }
 
-    /// Get tags example
+    // Get tags example
     match client.get_tags().await {
         Ok(tags) => println!("Tags: {:?}", tags),
         Err(e) => eprintln!("Error getting tags: {}", e),
     }
 
-    /// Create tag example
+    // Create tag example
     match client.create_tag("rust-sdk-test").await {
         Ok(new_tag) => println!("New tag: {:?}", new_tag),
         Err(e) => eprintln!("Error creating tag: {}", e),
     }
 
-    /// Get fields example
+    // Get fields example
     match client.get_fields().await {
         Ok(fields) => println!("Fields: {:?}", fields),
         Err(e) => eprintln!("Error getting fields: {}", e),
     }
 
-    /// Create field example
+    // Create field example
     match client.create_field("rust_test_field").await {
         Ok(new_field) => println!("New field: {:?}", new_field),
         Err(e) => eprintln!("Error creating field: {}", e),
     }
 
-    /// Get stats examples
+    // Get stats examples
     match client.get_site_stats().await {
         Ok(site_stats) => println!("Site stats: {:?}", site_stats),
         Err(e) => eprintln!("Error getting site stats: {}", e),

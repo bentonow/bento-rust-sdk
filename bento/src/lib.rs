@@ -39,6 +39,9 @@ pub mod tag;
 /// The stats module includes tools for accessing and manipulating statistical data.
 pub mod stats;
 
+/// The commands module provides functionality for executing subscriber commands.
+pub mod commands;
+
 #[cfg(test)]
 mod test_utils;
 

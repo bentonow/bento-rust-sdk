@@ -4,7 +4,19 @@
 > [!TIP]
 > Need help? Join our [Discord](https://discord.gg/ssXXFRmt5F) or email jesse@bentonow.com for personalized support.
 
-The Bento Rust SDK provides a robust interface for email management, subscriber tracking, and event handling in your Rust applications.
+The Bento Rust SDK provides a robust interface for email management, subscriber tracking, event handling and more for your Rust applications. We provide powerful and customizable APIs that can be used out-of-the-box.
+
+Get started with our [📚 integration guides](https://docs.bentonow.com), or [📘 browse the SDK reference](https://docs.bentonow.com/subscribers).
+
+## Features
+
+* **Event Tracking**: Track custom events with rich metadata and fields
+* **Subscriber Management**: Create and import subscribers with full data support
+* **Email Handling**: Send transactional emails with batching support
+* **Broadcast Management**: Create and manage email broadcasts
+* **Async Support**: Built on tokio for async/await support
+* **Strong Types**: Type-safe request and response handling with serde
+* **Retry Logic**: Automatic retry handling for rate limits
 
 ## Requirements
 
@@ -81,6 +93,49 @@ let subscriber = ImportSubscriberData {
 };
 
 client.import_subscribers(vec![subscriber]).await?;
+```
+
+### Subscriber Commands
+
+#### Available Command Types
+- `AddTag` - Add a tag to a subscriber
+- `AddTagViaEvent` - Add a tag via an event
+- `RemoveTag` - Remove a tag from a subscriber
+- `AddField` - Add a field to a subscriber
+- `RemoveField` - Remove a field from a subscriber
+- `Subscribe` - Subscribe a user
+- `Unsubscribe` - Unsubscribe a user
+- `ChangeEmail` - Change a user's email
+
+#### Execute Single Command
+```rust
+use bento::{Client, CommandData, CommandType};
+
+let command = CommandData {
+    command: CommandType::AddTag,
+    email: "user@example.com".to_string(),
+    query: "new-customer".to_string(),
+};
+
+client.subscriber_command(vec![command]).await?;
+```
+
+#### Execute Multiple Commands
+```rust
+let commands = vec![
+    CommandData {
+        command: CommandType::AddTag,
+        email: "user@example.com".to_string(),
+        query: "active".to_string(),
+    },
+    CommandData {
+        command: CommandType::AddField,
+        email: "user@example.com".to_string(),
+        query: "signup_date=2024-01-20".to_string(),
+    },
+];
+
+client.subscriber_command(commands).await?;
 ```
 
 ### Email Management

@@ -34,12 +34,33 @@ pub enum CommandType {
     ChangeEmail,
 }
 
+/// Data for a subscriber command
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommandData {
+    /// Type of command to execute
+    pub command: CommandType,
+    /// Email address of the subscriber
+    pub email: String,
+    /// Query or value for the command
+    pub query: String,
+}
+
+/// Command execution response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommandResponse {
+    /// Number of successful operations
+    pub results: u32,
+    /// Number of failed operations
+    pub failed: u32,
+}
+
 /// Request body for batch event tracking
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventsRequest {
     /// List of events
     pub events: Vec<EventData>,
 }
+
 
 /// Tracking event data
 #[derive(Debug, Clone, Serialize, Deserialize)]

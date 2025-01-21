@@ -23,6 +23,10 @@ pub enum Error {
     #[error("unexpected API response: {0}")]
     UnexpectedResponse(String),
 
+    /// Invalid command type
+    #[error("invalid command type: {0}")]
+    InvalidCommand(String),
+
     /// Invalid name format
     #[error("invalid name format: {0}")]
     InvalidName(String),
